@@ -99,7 +99,7 @@ var helpCommands = [][]string{
 	{"SPERSIST", "key", "Set"},
 	{"SREM", "key member [member ...]", "Set"},
 	{"STRLEN", "key", "KV"},
-	{"STTL", "key", "Set"},
+	{"SSCAN", "key cursor [MATCH pattern] [COUNT count]", "Set"},
 	{"SUNION", "key [key ...]", "Set"},
 	{"SUNIONSTORE", "destination key [key ...]", "Set"},
 	{"SYNC", "logid", "Replication"},
@@ -139,4 +139,6 @@ var helpCommands = [][]string{
 	{"ZSCORE", "key member", "ZSet"},
 	{"ZTTL", "key", "ZSet"},
 	{"ZUNIONSTORE", "destkey numkeys key [key ...] [WEIGHTS weight [weight ...]] [AGGREGATE SUM|MIN|MAX]", "ZSet"},
+	// external cmd
+	{"-PDEL", "pattern", "KV"},
 }

@@ -105,6 +105,8 @@ func repl() {
 				reconnect(cmds[1:])
 			} else if cmd == "mode" {
 				switchMode(cmds[1:])
+			} else if cmd[0] == '-' {
+				externalCmd(cmds)
 			} else {
 				cliSendCommand(cmds)
 			}
@@ -461,4 +463,55 @@ func showWelcomeMsg() {
 	Usage: MODE [std | raw]
 	`
 	fmt.Println(welcome)
+}
+
+func externalCmd(cmds []string) {
+	cliConnect()
+	switch cmds[0] {
+	case "-PDEL":
+		if len(cmds) != 2 {
+			fmt.Println("ERR wrong number of arguments for '-pdel' external command")
+			return
+		}
+		var delCount, cursor int64
+		args := make([]interface{}, 5)
+		for {
+			args[0] = cursor
+			args[1] = "match"
+			args[2] = cmds[1]
+			args[3] = "count"
+			args[4] = 100
+			reply, err := client.Do("scan", args...)
+			if err != nil {
+				fmt.Printf("(error) %s\n", err.Error())
+				return
+			}
+			switch reply := reply.(type) {
+			case []interface{}:
+				cursor, err = strconv.ParseInt(string(reply[0].([]byte)), 10, 64)
+				if err != nil {
+					fmt.Printf("Unknown reply type: %+v\n", reply)
+					return
+				}
+				if len(reply[1].([]interface{})) > 0 {
+					count, err := client.Do("del", reply[1].([]interface{})...)
+					if err != nil {
+						fmt.Printf("(error) %s\n", err.Error())
+						return
+					}
+					delCount += count.(int64)
+				}
+			case goredis.Error:
+				fmt.Printf("(error) %s\n", string(reply))
+				return
+			default:
+				fmt.Printf("Unknown reply type: %+v\n", reply)
+				return
+			}
+			if cursor == 0 {
+				break
+			}
+		}
+		fmt.Println(delCount)
+	}
 }
